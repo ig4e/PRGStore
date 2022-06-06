@@ -18,17 +18,12 @@ const setSlash = require("./slash");
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(
-  cors({
-    origin: [`${config.dashboard_link}`],
-    credentials: true,
-  }),
-);
 
-
-
+mongoose.connect(process.env.database, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+});
 client.on("ready", async () => {
   client.user.setPresence({ activities: [{ name: 'PRG-Store & DashBord Go to Buy now | https://prg-buyacc.store' }], status: 'dnd' });
   console.log(client.user.tag);
@@ -36,9 +31,65 @@ client.on("ready", async () => {
 });
 
 
+app.use(
+  cors({
+    origin: [`${config.dashboard_link}`],
+    credentials: true,
+  }),
+);
 
+app.use(
+  session({
+    secret: "secret",
+    cookie: {
+      maxAge: 60000 * 60 * 24,
+    },
+    resave: false,
+    saveUninitialized: false,
+    store: new Store({
+      uri: process.env.database,
+      collection: "sessions",
+      expires: 60000 * 60 * 24,
+      connectionOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    }),
+  }),
+);
 
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
 
+passport.use(
+  new Strategy(
+    {
+      clientID: config.client_id,
+      clientSecret: config.client_secret,
+      callbackURL: config.dash_url + "/auth",
+      scope: ["identify"],
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      let data = await user_db.findOne({
+        id: profile.id,
+      });
+      if (!data) {
+        let data_new = await user_db.create({
+          id: profile.id,
+          accessToken: accessToken,
+        });
+        await data_new.save();
+      } else {
+        data.accessToken = accessToken;
+        await data.save();
+      }
+      process.nextTick(() => done(null, profile));
+    },
+  ),
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get(
   "/login",
@@ -154,7 +205,6 @@ app.put("/delete-account", async (req, res) => {
     res.json({ error: { msg: "unkown error" } });
   }
 })
-
 app.put("/", async (req, res) => {
   let user = await user_db.findOne({
     id: req.body.userID,
@@ -499,15 +549,105 @@ client.probot.on("transfered", async (guild, data, err) => {
     });
   }
 });
+const { Client, Intents, MessageEmbed, Message } = require("discord.js");
+const {
+  MessageActionRow,
+  MessageButton,
+  MessageSelectMenu,
+} = require("discord.js");
+const prefix = `d?`;
+client.on("messageCreate", (message) => {
+  if (message.content.startsWith(prefix + "menu")) {
+    const row = new MessageActionRow().addComponents(
+      new MessageSelectMenu()
+        .setCustomId("pages")
+        .setPlaceholder("Nothing selected")
 
+        .addOptions([
+          {
+            label: "Minecraft",
+            description: "Minecraft price",
+            value: "minecraft",
+          },
+          {
+            label: "Netflix",
+            description: "Netflix price",
+            value: "netflix",
+          },
+          {
+            label: "primegaming",
+            description: "PrimeGaming price",
+            value: "primegaming",
+          },
+        ]),
+    );
 
+    let embed0 = new MessageEmbed()
 
+      .setTitle(" ** 🛒 قائمة اسعار المنتجات **")
+      .setDescription(
+        `اسعار المتنجات الي نوفرها اضغط علي المينوي وي اختر`,
+      )
+      .setThumbnail(
+        "https://cdn.discordapp.com/attachments/939850223335923723/945496235123556362/1642498672913.png",
+      )
+      .setImage(
+        "https://cdn.discordapp.com/attachments/939850223335923723/945529178818768996/1642627209674.png",
+      )
+      .setFooter({
+        text: "PRG-Store",
+        iconURL: "https://i.imgur.com/Bq8YWy6.png",
+      })
+      .setTimestamp();
+    message.channel.send({ components: [row], embeds: [embed0] });
+  }
+});
 
+client.on("interactionCreate", (interaction) => {
+  if (!interaction.isSelectMenu()) return;
+  if (interaction.customId == "pages") {
+    if (interaction.values[0] == "minecraft") {
+      let embed2 = new MessageEmbed()
+        .setDescription(`full access minecraft = 10$`)
+        .setThumbnail(
+          "https://cdn.discordapp.com/attachments/939850223335923723/945496235123556362/1642498672913.png",
+        )
+        .setImage(
+          "https://cdn.discordapp.com/attachments/939850223335923723/945529178818768996/1642627209674.png",
+        )
+        .setFooter({
+          text: "PRG-Store",
+          iconURL: "https://i.imgur.com/Bq8YWy6.png",
+        })
+        .setTimestamp();
+      interaction.reply({ embeds: [embed2], ephemeral: true });
+    } else if (interaction.values[0] == "netflix") {
+      let embed1 = new MessageEmbed()
+        .setDescription(`> full access roblox = 10$`)
+        .setFooter({
+          text: "PRG-Store",
+          iconURL: "https://i.imgur.com/Bq8YWy6.png",
+        });
 
+      interaction.reply({ embeds: [embed1], ephemeral: true });
+    } else if (interaction.values[0] == "primegaming") {
+      let embed3 = new MessageEmbed()
+        .setTitle(`قائمة اسعار PrimeGaming`)
+        .setDescription(`Prime Gaming 7d => 35k probot`)
+        .setThumbnail(
+          "https://cdn.discordapp.com/attachments/939850223335923723/945496235123556362/1642498672913.png",
+        )
+        .setImage(
+          "https://cdn.discordapp.com/attachments/939850223335923723/945529178818768996/1642627209674.png",
+        )
+        .setFooter({
+          text: "PRG-Store",
+          iconURL: "https://i.imgur.com/Bq8YWy6.png",
+        })
+        .setTimestamp();
+      interaction.reply({ embeds: [embed3], ephemeral: true });
+    }
+  }
+});
 
 client.login(process.env.token);
-mongoose.connect(process.env.database, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-});

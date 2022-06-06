@@ -1,0 +1,19 @@
+{
+	"client": {
+		"id": "960689978332028929",
+		"secret": "JiNTZfDZaK4nI4ctDi9xYWXgqrcrXdDU",
+		"token": "OTgzMzUwMTY5ODQyMTIyNzUy.G50EYz.ekZQKqEJFlycjiK-C555ldO7lOfOEBkJukeLpK"
+	},
+	"urls": {
+		"dash": "https://prg-buyacc.store",
+		"api": "https://api.prg-buyacc.store"
+	},
+	"config": {
+		"guildId": "908114247484059648",
+		"probotId": "282859044593598464",
+		"ownerId": "943516065323950171",
+		"channelId": "960680714427310100",
+		"roleId": "950786968390885406",
+		"devs": ["873585816704790538"]
+	}
+}

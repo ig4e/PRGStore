@@ -1,5 +1,5 @@
 const { Client } = require("discord.js");
-const { Probot } = require("discord-probot-transfer");
+const probotClient = require("./probot");
 const { config, client } = require("./options.json");
 const setSlash = require("./slash");
 const fs = require("fs");
@@ -8,18 +8,9 @@ class CustomClient extends Client {
 	constructor(clientOptions) {
 		super(clientOptions);
 		this.commands = [];
-
-		this.probot = Probot(client, {
-			fetchGuilds: true,
-			data: [
-				{
-					fetchMembers: true,
-					guildId: config.guildId,
-					probotId: config.probotId,
-					owners: [config.ownerId],
-				},
-			],
-		});
+		this.ready = false;
+		this.tax = probotClient.tax;
+		this.probot = probotClient;
 
 		fs.readdirSync("./commands").map((folderName) => {
 			fs.readdirSync("./commands/" + folderName).map((fileName) => {
@@ -30,6 +21,7 @@ class CustomClient extends Client {
 		});
 
 		this.on("ready", async () => {
+			this.ready = true;
 			this.user.setPresence({
 				activities: [
 					{
@@ -43,6 +35,11 @@ class CustomClient extends Client {
 		});
 
 		this.login(client.token);
+	}
+	async sendToTransferChannel(messageOptions) {
+		let guild = this.guilds.cache.get(config.guildId);
+		let channel = guild.channels.cache.get(config.transferChannelId);
+		return channel.send(messageOptions);
 	}
 }
 

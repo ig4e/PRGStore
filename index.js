@@ -20,12 +20,18 @@ const apiLimiter = rateLimit({
 	standardHeaders: true,
 	legacyHeaders: false,
 });
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/auth", authRouter);
 app.use("/api", apiLimiter);
 app.use("/api", productsRouter);
-app.use("/api", userRouter);
+app.use("/api", userRouter(client));
+
+
+
+
+console.log(client.tax(400))
 
 /*
 app.use(
@@ -61,10 +67,6 @@ client.on("interactionCreate", async (interaction) => {
 	}
 });
 
-client.probot.on("transfered", async (guild, data, err) => {
-	if (err) return guild.channel.send({ content: `❌` });
-	var { member, price, receiver } = data;
-});
 
 mongoose.connect(db.url).then(() => {
 	console.log("DB READY!");

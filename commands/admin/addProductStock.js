@@ -11,12 +11,7 @@ module.exports = {
 		slashSettings: new SlashCommandBuilder()
 			.setName("add-product-stock")
 			.setDescription("Adds Product Stock From a .txt File")
-			.addStringOption((option) =>
-				option
-					.setName("id")
-					.setDescription("The Product ID")
-					.setRequired(true),
-			)
+
 			.addAttachmentOption((option) =>
 				option
 					.setName("attachment")
@@ -24,23 +19,46 @@ module.exports = {
 						"Attach accounts.text (email:passowrd) OR codes.txt (code)",
 					)
 					.setRequired(true),
+			)
+			.addStringOption((option) =>
+				option
+					.setName("id")
+					.setDescription("The Product ID")
+					.setRequired(false),
+			)
+			.addStringOption((option) =>
+				option
+					.setName("title")
+					.setDescription("The Product Title")
+					.setRequired(false),
 			),
 	},
 	async run(client, interaction) {
 		const productID = interaction.options.getString("id");
+		const productTitle = interaction.options.getString("title");
+
+		if (!productID && !productTitle)
+			return interaction.reply({
+				content: "You Need to give me the product title or id",
+			});
+
 		const { name, url } = interaction.options.getAttachment("attachment");
 		if (!name.endsWith(".txt"))
 			return interaction.reply({
 				content: "❌ | Error The Attachment Nust Be a .txt File",
 			});
-		let product = await productsModel.findOne({
-			id: productID,
-		});
+		let queryOptions = {};
+		if (productID) queryOptions.id = productID.trim();
+		if (productTitle) queryOptions.title = productTitle.trim();
+		let product = await productsModel.findOne(queryOptions);
 		if (!product)
 			return interaction.reply({
 				content: `❌ | This Product Does'nt Exist!`,
 			});
 		const isCode = product.isCode;
+		await interaction.reply({
+			content: `Loading....`,
+		});
 		let textContent = await axios.get(url).then((res) => res.data);
 		let totalAdded = 0;
 		if (isCode) {
@@ -65,9 +83,9 @@ module.exports = {
 				totalAdded++;
 			});
 		}
-
+		product.stockCount = product.stock.length;
 		await product.save();
-		interaction.reply({
+		interaction.editReply({
 			content: `✅ | Done Added ${totalAdded} ${
 				isCode ? "Codes" : "Accounts"
 			} To ${product.title}.\n${product.title}'s Stock: ${

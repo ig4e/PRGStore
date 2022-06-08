@@ -54,6 +54,7 @@ module.exports = {
 			price: price,
 			description: description,
 			isCode: code,
+			stockCount: 0,
 			stock: [],
 			createdAt: new Date(),
 		});

@@ -6,7 +6,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const app = express();
 const { CustomClient } = require("./client");
-const { config, db } = require("./options.json");
+const { config, db } = require("./options");
 const authRouter = require("./routes/auth.js");
 const userRouter = require("./routes/user.js");
 const productsRouter = require("./routes/products.js");
@@ -28,12 +28,6 @@ app.use("/api", apiLimiter);
 app.use("/api", productsRouter);
 app.use("/api", userRouter(client));
 
-
-
-
-console.log(client.tax(400))
-
-/*
 app.use(
 	cors({
 		origin: [config.dashboard_link],
@@ -45,7 +39,6 @@ app.use(
 		contentSecurityPolice: false,
 	}),
 );
-*/
 
 client.on("interactionCreate", async (interaction) => {
 	if (!interaction.isCommand()) return;
@@ -66,7 +59,6 @@ client.on("interactionCreate", async (interaction) => {
 		}
 	}
 });
-
 
 mongoose.connect(db.url).then(() => {
 	console.log("DB READY!");

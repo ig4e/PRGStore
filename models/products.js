@@ -8,6 +8,7 @@ const productSchema = Schema({
 	description: { type: String, default: "-" },
 	isCode: { type: Boolean, default: false },
 	createdAt: { type: Date, default: Date.now },
+	stockCount: { type: Number, default: 0 },
 	stock: [
 		{
 			id: String,
@@ -17,10 +18,6 @@ const productSchema = Schema({
 			createdAt: Date,
 		},
 	],
-});
-
-productSchema.virtual("stockCount").get(function () {
-	return this.stock.length;
 });
 
 const productsModel = model("product", productSchema);

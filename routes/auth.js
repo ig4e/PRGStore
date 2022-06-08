@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const DiscordOauth2 = require("discord-oauth2");
-const { client } = require("../options.json");
+const { client } = require("../options");
 const { userModel } = require("../models/user");
 const { v4 } = require("uuid");
 const _ = require("lodash");

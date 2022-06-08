@@ -1,6 +1,6 @@
 const { Client } = require("discord.js");
 const probotClient = require("./probot");
-const { config, client } = require("./options.json");
+const { config, client } = require("./options");
 const setSlash = require("./slash");
 const fs = require("fs");
 

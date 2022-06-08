@@ -25,11 +25,22 @@ router.get("/products", async (req, res) => {
 		let { limit, offset } = _.merge({ limit: 0, offset: 0 }, req.query);
 		let allProducts = await productsModel
 			.find({})
+			.select([
+				"id",
+				"title",
+				"imageURL",
+				"price",
+				"description",
+				"isCode",
+				"createdAt",
+				"stockCount"
+			])
 			.skip(offset)
 			.limit(limit);
 
 		res.json({ status: 200, products: formatProducts(allProducts) });
 	} catch (err) {
+		console.log(err)
 		res.json({ status: 500, error: "Server Error" });
 	}
 });
@@ -44,7 +55,7 @@ function formatProducts(allProducts) {
 			description: product.description,
 			isCode: product.isCode,
 			createdAt: product.createdAt,
-			stock: product.stock.length,
+			stock: product.stockCount,
 		};
 	});
 }

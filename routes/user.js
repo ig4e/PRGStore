@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { userModel } = require("../models/user");
+const { productsModel } = require("../models/products");
 const { v4 } = require("uuid");
 const _ = require("lodash");
-const { config } = require("../options.json");
+const { config } = require("../options");
 /*
 var check = await client.probot.collect(message, {
       probotId: `567703512763334685`,
@@ -91,6 +92,79 @@ function setupRouter(client) {
 			info: user.info,
 			balance: user.balance,
 		});
+	});
+
+	/*
+	 
+	products: [{
+		id: String,
+		amount: Number
+	}]
+
+	*/
+
+	router.post("/user/order", checkAuth, async (req, res) => {
+		let { user } = req;
+		let { products } = req.body;
+		let dbProducts = await productsModel.find({
+			id: { $in: products.map((product) => product.id) },
+		});
+		let totalPrice = dbProducts.reduce(
+			(total, current) =>
+				(total += user.info.vip
+					? current.price - current.price * 0.1
+					: current.price),
+			0,
+		);
+		if (user.balance >= totalPrice) {
+			for (let product of dbProducts) {
+				let { amount } =
+					products.find((prod) => prod.id == product.id) || {};
+				if (!amount)
+					return res.json({
+						status: 400,
+						error: "Error In Order Request Params",
+					});
+				if (product.stock.length >= amount) {
+					let boughtProducts = product.stock.slice(0, amount);
+					boughtProducts.forEach((p) =>
+						user.orders.push({
+							id: p.id,
+							productID: product.id,
+							createdAt: new Date(),
+							completed: true,
+							orderData: {
+								email: p.email,
+								password: p.password,
+								code: p.code,
+							},
+						}),
+					);
+					product.stock = product.stock.filter(
+						(stock) =>
+							!boughtProducts.map((_) => _.id).includes(stock.id),
+					);
+					product.stockCount = product.stock.length;
+					user.balance -= totalPrice;
+					await product.save();
+					await user.save();
+				} else {
+					return res.json({
+						status: 200,
+						error: "No Stock",
+					});
+				}
+			}
+			return res.json({
+				status: 400,
+				message: "Done Check Your Orders(Inventory)",
+			});
+		} else {
+			res.json({
+				status: 403,
+				error: "Your balance isn't enough to buy this products",
+			});
+		}
 	});
 
 	router.get("/user/orders", checkAuth, async (req, res) => {

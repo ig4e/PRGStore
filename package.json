@@ -1,10 +1,10 @@
 {
-  "name": "Discordjs-v13",
+  "name": "prg-bot",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,17 +13,25 @@
     "node": "^16.6.1"
   },
   "dependencies": {
-    "body-parser": "^1.19.2",
+    "@discordjs/builders": "^0.15.0",
+    "@discordjs/rest": "^0.5.0",
+    "axios": "^0.27.2",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.20.0",
     "cors": "^2.8.5",
-    "discord-probot-transfer": "0.0.4",
-    "discord.js": "^13.6.0",
-    "express": "^4.17.1",
-    "express-session": "^1.17.2",
-    "helmet": "^5.0.2",
-    "mongoose": "^5.13.14",
-    "passport": "^0.5.2",
-    "passport-discord": "^0.1.4",
-    "request": "^2.88.2"
+    "discord-api-types": "^0.33.4",
+    "discord-oauth2": "^2.10.0",
+    "discord-probot-transfer": "^0.0.4",
+    "discord.js": "^13.8.0",
+    "express": "^4.18.1",
+    "express-rate-limit": "^6.4.0",
+    "fuse.js": "^6.0.0",
+    "google-auth-library": "^8.0.2",
+    "helmet": "^5.1.0",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.3.5",
+    "nodemon": "^2.0.16",
+    "uuid": "^8.3.2"
   },
   "description": ""
 }

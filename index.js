@@ -69,4 +69,4 @@ client.on("interactionCreate", async (interaction) => {
 mongoose.connect(db.url).then(() => {
 	console.log("DB READY!");
 });
-app.listen(3500, () => console.log("Server Started!"));
+app.listen(3000, () => console.log("Server Started!"));

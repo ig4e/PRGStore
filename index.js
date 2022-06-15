@@ -28,6 +28,12 @@ app.use("/api", apiLimiter);
 app.use("/api", productsRouter);
 app.use("/api", userRouter(client));
 
+/*
+app.use(
+	cors({
+		origin: "*",
+	}),
+);
 app.use(
 	cors({
 		origin: [config.dashboard_link],
@@ -39,7 +45,7 @@ app.use(
 		contentSecurityPolice: false,
 	}),
 );
-
+*/
 client.on("interactionCreate", async (interaction) => {
 	if (!interaction.isCommand()) return;
 	const { commandName } = interaction;
@@ -63,4 +69,4 @@ client.on("interactionCreate", async (interaction) => {
 mongoose.connect(db.url).then(() => {
 	console.log("DB READY!");
 });
-app.listen(3000, () => console.log("Server Started!"));
+app.listen(3500, () => console.log("Server Started!"));

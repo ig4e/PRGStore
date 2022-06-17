@@ -6,7 +6,7 @@ module.exports = {
 		redirectUri: "http://localhost:3001/auth/discord",
 	},
 	db: {
-		url: "mongodb+srv://admin:1234@cluster0.y1nkx.mongodb.net/?retryWrites=true&w=majority",
+		url: "mongodb://localhost/prg",
 	},
 	urls: {
 		dash: "https://prg-buyacc.store",
@@ -16,7 +16,8 @@ module.exports = {
 		guildId: "980763155238101022",
 		transferChannelId: "984103888204488705",
 		vipRoleId: "984191947788943360",
-		owners: ["979915216651423815"],
+		owners: ["979915216651423815", "979915216651423815"],
+		ownersID: "436231895651450890",
 		probotId: "436231895651450890",
 	},
 };

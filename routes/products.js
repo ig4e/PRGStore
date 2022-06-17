@@ -33,31 +33,69 @@ router.get("/products", async (req, res) => {
 				"description",
 				"isCode",
 				"createdAt",
-				"stockCount"
+				"stockCount",
 			])
 			.skip(offset)
 			.limit(limit);
 
 		res.json({ status: 200, products: formatProducts(allProducts) });
 	} catch (err) {
-		console.log(err)
+		console.log(err);
+		res.json({ status: 500, error: "Server Error" });
+	}
+});
+
+router.get("/product", async (req, res) => {
+	try {
+		let { productID } = req.query;
+		if (!productID)
+			return res.json({ status: 400, message: "invaild product ID" });
+		let product = await productsModel
+			.findOne({ id: productID })
+			.select([
+				"id",
+				"title",
+				"imageURL",
+				"price",
+				"description",
+				"isCode",
+				"createdAt",
+				"stockCount",
+			]);
+
+		res.json({ status: 200, products: formatProducts(product) });
+	} catch (err) {
+		console.log(err);
 		res.json({ status: 500, error: "Server Error" });
 	}
 });
 
 function formatProducts(allProducts) {
-	return allProducts.map((product) => {
+	if (Array.isArray(allProducts)) {
+		return allProducts.map((product) => {
+			return {
+				id: product.id,
+				title: product.title,
+				imageURL: "http://localhost:3000/uploads/" + product.imageURL,
+				price: product.price,
+				description: product.description,
+				isCode: product.isCode,
+				createdAt: product.createdAt,
+				stock: product.stockCount,
+			};
+		});
+	} else {
 		return {
-			id: product.id,
-			title: product.title,
-			imageURL: product.imageURL,
-			price: product.price,
-			description: product.description,
-			isCode: product.isCode,
-			createdAt: product.createdAt,
-			stock: product.stockCount,
+			id: allProducts.id,
+			title: allProducts.title,
+			imageURL: "http://localhost:3000/uploads/" + allProducts.imageURL,
+			price: allProducts.price,
+			description: allProducts.description,
+			isCode: allProducts.isCode,
+			createdAt: allProducts.createdAt,
+			stock: allProducts.stockCount,
 		};
-	});
+	}
 }
 
 module.exports = router;

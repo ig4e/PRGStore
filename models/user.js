@@ -16,6 +16,7 @@ const userModel = mongoose.model(
 			password: { type: String, defualt: null },
 			vip: { type: Boolean, default: false },
 			createdAt: { type: Date, defualt: Date.now },
+			verified: { type: Boolean, default: false },
 		},
 		auth: {
 			accessToken: { type: String, defualt: null },

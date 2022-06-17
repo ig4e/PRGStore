@@ -33,6 +33,7 @@
     "helmet": "^5.1.0",
     "lodash": "^4.17.21",
     "mongoose": "^6.3.8",
+    "nodemailer": "^6.7.5",
     "nodemon": "^2.0.16",
     "uuid": "^8.3.2"
   },

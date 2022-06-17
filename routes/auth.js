@@ -8,7 +8,7 @@ const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const rateLimit = require("express-rate-limit");
-
+const { gmailTransporter } = require("../email/gmailTransport");
 const loginLimiter = rateLimit({
 	windowMs: 1 * 60 * 1000,
 	max: 100,
@@ -94,6 +94,8 @@ router.post("/register", async (req, res) => {
 	}
 });
 
+router.get("");
+
 router.get("/discord", async (req, res) => {
 	try {
 		let { code } = req.query;
@@ -156,6 +158,12 @@ async function verifyGoogleToken(token) {
 
 */
 
+
+
+
+
+
+
 async function userLogin(options) {
 	let { username, email, password, discordID, discordAuth, googleAuth } =
 		_.merge(
@@ -175,9 +183,11 @@ async function userLogin(options) {
 
 	let user = await userModel.findOne({ "info.email": email });
 	if (!user) {
-		let passwordHash = await createPasswordHash(password || v4().slice(8));
+		let userID = v4();
+		if (!password) password = userID.substring(0, 8);
+		let passwordHash = await createPasswordHash(password);
 		user = await userModel.create({
-			id: v4(),
+			id: userID,
 			info: {
 				vip: false,
 				username: username,
@@ -193,6 +203,20 @@ async function userLogin(options) {
 			},
 			balance: 0,
 			orders: [],
+		});
+
+		let mailOptions = {
+			from: "prgstoretest@gmail.com",
+			to: user.info.email,
+			subject: "PRG - Store Account Created",
+			html: `<h1>Account Created</h1>
+			<h2>Thanks For Choosing Us</h2>
+			<h3>Email: ${user.info.email}<br/>Password: ${password}</h3>`,
+		};
+
+		gmailTransporter.sendMail(mailOptions, (err, info) => {
+			if (err) return console.log(err);
+			console.log(info);
 		});
 	} else {
 		if (discordAuth) user.auth.discord = discordAuth;

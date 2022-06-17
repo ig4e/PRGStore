@@ -5,6 +5,8 @@ const { productsModel } = require("../models/products");
 const { v4 } = require("uuid");
 const _ = require("lodash");
 const { config } = require("../options");
+const { gmailTransporter } = require("../email/gmailTransport");
+
 /*
 var check = await client.probot.collect(message, {
       probotId: `567703512763334685`,
@@ -92,6 +94,67 @@ function setupRouter(client) {
 			info: user.info,
 			balance: user.balance,
 		});
+	});
+
+	let codes = [];
+	let vCodeGenerator = () =>
+		[0, 1, 2, 3, 4]
+			.map((_) => String(Math.floor(Math.random() * 9)))
+			.join("");
+	router.get("/user/verify", checkAuth, async (req, res) => {
+		try {
+			let { user } = req;
+			let { code } = req.query;
+			if (!code) {
+				let vCode = vCodeGenerator();
+				codes = codes.filter((code) => code.email != user.info.email);
+				codes.push({ email: user.info.email, code: vCode });
+				let mailOptions = {
+					from: "prgstoretest@gmail.com",
+					to: user.info.email,
+					subject: "PRG - Store Account Verify",
+					html: `<h1>Account Verifcation Code: ${vCode}</h1><h2>Thanks For Choosing Us</h2>`,
+				};
+				gmailTransporter.sendMail(mailOptions, (err, info) => {
+					if (err)
+						return res.json({
+							status: 500,
+							message: "error in sending the verifcation code",
+						});
+					return res.json({
+						status: 200,
+						message: "verifcation code has been sent",
+					});
+				});
+			} else {
+				let checkCode = codes.find(
+					(lCode) =>
+						lCode.email == user.info.email && lCode.code == code,
+				);
+				if (checkCode) {
+					user.info.verified = true;
+					await user.save();
+					return res.json({
+						status: 200,
+						message: "the user's email address is now verified",
+					});
+				} else {
+					codes = codes.filter(
+						(code) => code.email != user.info.email,
+					);
+					return res.json({
+						status: 200,
+						message: "invaild verifcation code",
+					});
+				}
+			}
+		} catch (err) {
+			console.log(err);
+			return res.json({
+				status: 500,
+				message: "server error",
+			});
+		}
 	});
 
 	/*

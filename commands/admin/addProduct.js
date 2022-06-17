@@ -2,7 +2,10 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { productsModel } = require("../../models/products");
 const { v4 } = require("uuid");
 const { MessageEmbed } = require("discord.js");
-
+const { encode, decode } = {
+	decode: (base64) => Buffer.from(base64, "base64").toString("ascii"),
+	encode: (ascii) => Buffer.from(ascii).toString("base64"),
+};
 module.exports = {
 	info: {
 		name: "add-product",
@@ -22,12 +25,6 @@ module.exports = {
 					.setDescription("the product description")
 					.setRequired(true),
 			)
-			.addStringOption((option) =>
-				option
-					.setName("image")
-					.setDescription("the product image URL")
-					.setRequired(true),
-			)
 			.addIntegerOption((option) =>
 				option
 					.setName("price")
@@ -39,18 +36,32 @@ module.exports = {
 					.setName("code")
 					.setDescription("whether the product is a code or an email")
 					.setRequired(true),
+			)
+			.addAttachmentOption((option) =>
+				option
+					.setName("attachment")
+					.setDescription("product image")
+					.setRequired(true),
 			),
 	},
 	async run(client, interaction) {
 		const title = interaction.options.getString("title");
 		const description = interaction.options.getString("description");
-		const imageURL = interaction.options.getString("image");
 		const code = interaction.options.getBoolean("code");
 		const price = interaction.options.getInteger("price");
+		const interactionAttachment =
+			interaction.options.getAttachment("attachment");
+		let { attachments } = await interaction.guild.channels.cache
+			.get("986732172692054026")
+			.send({ files: [interactionAttachment.url] });
+		let { url: imageURL } = attachments.first();
+
+		let uploadID = encode(imageURL.split("attachments/")[1]);
+
 		let newProduct = await productsModel.create({
 			id: v4(),
 			title: title,
-			imageURL: imageURL,
+			imageURL: uploadID,
 			price: price,
 			description: description,
 			isCode: code,
@@ -61,7 +72,7 @@ module.exports = {
 
 		let embed = new MessageEmbed()
 			.setTitle(`Product Title: ${newProduct.title}`)
-			.setImage(newProduct.imageURL)
+			.setImage(imageURL)
 			.setDescription(
 				`**Description: ${newProduct.description}\nPrice: \`$${newProduct.price}\`\nProduct ID: \`${newProduct.id}\`**`,
 			)
